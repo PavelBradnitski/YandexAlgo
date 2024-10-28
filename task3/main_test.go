@@ -44,6 +44,7 @@ func TestFigure(t *testing.T) {
 		{
 			name:           "Test O Pos 1",
 			expression:     []string{".####.", ".#..#.", ".#..#.", ".####."},
+			func1:          "CheckO",
 			expectedResult: true,
 		},
 		{
@@ -52,21 +53,55 @@ func TestFigure(t *testing.T) {
 				".##..#.",
 				".##..#.",
 				".#####."},
+			func1:          "CheckO",
 			expectedResult: true,
 		},
 		{
 			name:           "Test O Neg 1",
 			expression:     []string{".#####.", ".#...#.", ".##..#.", ".#####."},
+			func1:          "CheckO",
 			expectedResult: false,
 		},
 		{
 			name:           "Test O Neg 2",
 			expression:     []string{".#####.", ".#.....", ".#.....", ".#####."},
+			func1:          "CheckO",
 			expectedResult: false,
 		},
 		{
 			name:           "Test O Neg 3",
 			expression:     []string{".#####.", ".#...#.", ".#...#.", ".##.##."},
+			func1:          "CheckO",
+			expectedResult: false,
+		},
+		{
+			name:           "Test O Neg 4",
+			expression:     []string{".#####.", ".#...#.", ".#...#.", ".##.##."},
+			func1:          "CheckO",
+			expectedResult: false,
+		},
+		{
+			name:           "Test C Pos 1",
+			expression:     []string{".#####.", ".##....", ".##....", ".#####."},
+			func1:          "CheckC",
+			expectedResult: true,
+		},
+		{
+			name:           "Test C Pos 2",
+			expression:     []string{".#####.", ".#.....", ".#.....", ".#####."},
+			func1:          "CheckC",
+			expectedResult: true,
+		},
+		{
+			name:           "Test C Neg 1",
+			expression:     []string{".#####.", ".#.....", ".#.....", ".####.."},
+			func1:          "CheckC",
+			expectedResult: false,
+		},
+		{
+			name:           "Test C Neg 2",
+			expression:     []string{"..####.", ".#.....", ".#.....", ".####.."},
+			func1:          "CheckC",
 			expectedResult: false,
 		},
 	}
