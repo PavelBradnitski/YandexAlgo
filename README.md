@@ -5,5 +5,6 @@ Yandex Algorithm Course
  - Префиксные суммы и 2 указателся;
  - Стеки, очереди, деки;
  - Деревья, представления и обходы.
+
 Ссылка на курс
 https://yandex.ru/yaintern/training/algorithm-training
