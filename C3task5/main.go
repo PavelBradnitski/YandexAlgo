@@ -14,113 +14,89 @@ func main() {
 	defer out.Flush()
 	input, _ := in.ReadString('\n')
 	input = strings.TrimSpace(input)
-	input = strings.ReplaceAll(input, " ", "")
 
 	var values []string
 	currentNumber := ""
-	// for i, char := range input {
-	// 	if char >= '0' && char <= '9' {
-	// 		currentNumber += string(char)
-	// 	} else {
-	// 		if i == 0 || (i > 0 && input[i-1] == '(') {
-	// 			if char == '-' {
-	// 				values = append(values, "0")
-	// 			}
-	// 		}
-	// 		if currentNumber != "" {
-	// 			values = append(values, currentNumber)
-	// 			currentNumber = ""
-	// 		}
-	// 		values = append(values, string(char))
-	// 	}
-
-	// 	if i > 0 && char >= '0' && char <= '9' && input[i-1] >= '0' && input[i-1] <= '9' {
-	// 		fmt.Fprintln(out, "WRONG1")
-	// 		return
-	// 	}
-
-	// }
+	var err error
 	for i, char := range input {
-		if char >= '0' && char <= '9' { // Проверка на цифру
+		if char != '(' && char != ')' && char != '+' && char != '*' && char != '-' && char != ' ' {
+			if char < '0' && char > '9' {
+				fmt.Fprintln(out, "WRONG")
+				return
+			}
+		}
+		if char >= '0' && char <= '9' {
 			currentNumber += string(char)
 		} else {
 			if currentNumber != "" {
 				values = append(values, currentNumber)
 				currentNumber = ""
 			}
-			values = append(values, string(char))
-		}
-		// Проверка на два числа подряд (сразу после добавления цифры)
-		if i > 0 && input[i-1] >= '0' && input[i-1] <= '9' {
-			fmt.Fprintln(out, "WRONG1")
-			return // Прерываем программу, если обнаружена ошибка
-		}
-		// Проверка на отрицательное число в начале строки или после открывающейся скобки
-		if i == 0 || (i > 0 && input[i-1] == '(') {
-			if char == '-' {
-				values = append(values, "0") // Добавляем 0 перед отрицательным числом
+			if i == 0 || (i > 0 && input[i-1] == '(') {
+				if char == '-' {
+					values = append(values, "0")
+				}
+			}
+			if i == 0 || (i > 0 && input[i-1] == '(') {
+				if char == ')' || char == '+' || char == '*' {
+					fmt.Fprintln(out, "WRONG")
+					return
+				}
+			}
+			if char != ' ' {
+				values = append(values, string(char))
 			}
 		}
+		if len(values) != 0 {
+			_, err = strconv.Atoi(values[len(values)-1])
+		}
+		if len(values) != 0 && currentNumber != "" && err == nil {
+			fmt.Fprintln(out, "WRONG")
+			return
+		}
+
 	}
-	// fmt.Println("Значения в срезе:", values)
 	if currentNumber != "" {
 		values = append(values, currentNumber)
 	}
-	output, err := Calculator(values)
-	if err == nil {
+	if output, err := Calculator(values); err == nil {
 		fmt.Fprintln(out, output)
 	} else {
 		fmt.Fprintln(out, "WRONG")
 	}
-
 }
 
-func Calculator(str []string) (int, error) {
+func Calculator(str []string) (int64, error) {
 	var postfix []string
 	var stack []rune
-	prevSymb := string(str[0])
 	if !RightBracketSeq(str) {
 		return 0, fmt.Errorf("bracket error")
 	}
-	for i, v := range str {
-
-		if i != 0 {
-			_, err1 := strconv.Atoi(prevSymb)
-			_, err2 := strconv.Atoi(string(v))
-			if err1 == nil && err2 == nil {
-				return 0, fmt.Errorf("can't be 2 digit in series")
-			}
-		}
+	for _, v := range str {
 		if _, err := strconv.Atoi(string(v)); err == nil {
 			postfix = append(postfix, v)
-			prevSymb = string(v)
 		} else {
 			switch v {
 			case "+":
-				for len(stack) != 0 && (stack[len(stack)-1] == '+' || stack[len(stack)-1] == '-') {
+				for len(stack) != 0 && (stack[len(stack)-1] == '+' || stack[len(stack)-1] == '-' || stack[len(stack)-1] == '*') {
 					postfix = append(postfix, string(stack[len(stack)-1]))
 					stack = stack[:len(stack)-1]
 				}
 				stack = append(stack, '+')
-				prevSymb = string(v)
 			case "*":
 				for len(stack) != 0 && stack[len(stack)-1] == '*' {
 					postfix = append(postfix, string(stack[len(stack)-1]))
 					stack = stack[:len(stack)-1]
 				}
 				stack = append(stack, '*')
-				prevSymb = string(v)
 			case "-":
 				for len(stack) != 0 && (stack[len(stack)-1] == '+' || stack[len(stack)-1] == '-' || stack[len(stack)-1] == '*') {
 					postfix = append(postfix, string(stack[len(stack)-1]))
 					stack = stack[:len(stack)-1]
 				}
-
 				stack = append(stack, '-')
-				prevSymb = string(v)
 			case "(":
 				stack = append(stack, '(')
-				prevSymb = string(v)
 			case ")":
 				for len(stack) != 0 && stack[len(stack)-1] != '(' {
 					postfix = append(postfix, string(stack[len(stack)-1]))
@@ -129,7 +105,6 @@ func Calculator(str []string) (int, error) {
 				if len(stack) != 0 && stack[len(stack)-1] == '(' {
 					stack = stack[:len(stack)-1]
 				}
-				prevSymb = string(v)
 			default:
 				return 0, fmt.Errorf("unknown symbol")
 			}
@@ -139,33 +114,21 @@ func Calculator(str []string) (int, error) {
 		postfix = append(postfix, string(stack[len(stack)-1]))
 		stack = stack[:len(stack)-1]
 	}
-	if containsRune(postfix, "(") {
-		return 0, fmt.Errorf("error on postfix")
-	}
-	// for _, v := range postfix {
-	// 	fmt.Printf("%s ", string(v))
-	// }
-	// fmt.Println("End Here")
 	return CalculatePrefix(postfix)
 }
 
-func containsRune(runes []string, target string) bool {
-	for _, r := range runes {
-		if r == target {
-			return true
-		}
-	}
-	return false
-}
-func CalculatePrefix(inpStr []string) (int, error) {
-	var stack []int
+func CalculatePrefix(inpStr []string) (int64, error) {
+	var stack []int64
+	var s, f int64
 	for _, char := range inpStr {
-		if num, err := strconv.Atoi(string(char)); err == nil {
+		if num, err := strconv.ParseInt(string(char), 10, 64); err == nil {
 			stack = append(stack, num)
 		} else {
-			s := stack[len(stack)-1]
-			f := stack[len(stack)-2]
-			stack = stack[:len(stack)-2]
+			if len(stack) > 1 {
+				s = stack[len(stack)-1]
+				f = stack[len(stack)-2]
+				stack = stack[:len(stack)-2]
+			}
 			switch char {
 			case "+":
 				stack = append(stack, s+f)
@@ -185,29 +148,17 @@ func CalculatePrefix(inpStr []string) (int, error) {
 func RightBracketSeq(str []string) bool {
 	var stack []string
 	for _, v := range str {
-		if v == "(" || v == "{" || v == "[" {
+		if v == "(" {
 			stack = append(stack, v)
 		} else if len(stack) > 0 {
 			switch v {
 			case ")":
 				if stack[len(stack)-1] == "(" {
 					stack = stack[:len(stack)-1]
-				} else {
-					return false
-				}
-			case "}":
-				if stack[len(stack)-1] == "{" {
-					stack = stack[:len(stack)-1]
-				} else {
-					return false
-				}
-			case "]":
-				if stack[len(stack)-1] == "[" {
-					stack = stack[:len(stack)-1]
-				} else {
-					return false
 				}
 			}
+		} else if v == ")" {
+			return false
 		}
 	}
 	return len(stack) == 0
