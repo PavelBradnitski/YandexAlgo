@@ -48,18 +48,15 @@ func FindFirstLessNumber(input []int) string {
 	sb := strings.Builder{}
 
 	results := make([]int, len(input))
-
+	for i := range results {
+		results[i] = -1
+	}
 	for i := 0; i < len(input); i++ {
 		for !stack.Empty() && stack[len(stack)-1].Value > input[i] {
 			p, _ := stack.Pop()
 			results[p.Index] = i
 		}
 		stack.Push(Pair{Index: i, Value: input[i]})
-	}
-
-	for !stack.Empty() {
-		p, _ := stack.Pop()
-		results[p.Index] = -1
 	}
 
 	for _, v := range results {
