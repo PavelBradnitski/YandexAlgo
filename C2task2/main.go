@@ -66,7 +66,6 @@ func CountSubarraysWithSum(numbers []int, k int) int {
 // 				} else {
 // 					length++
 // 				}
-
 // 			}
 // 		} else if sum == num {
 // 			sum = nums[i-length]
